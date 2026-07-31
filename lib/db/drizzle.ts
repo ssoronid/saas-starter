@@ -27,8 +27,8 @@ function connect(): Db {
 // page data, and that must not throw on a machine without database env vars.
 export const db = new Proxy({} as Db, {
   get(_target, prop) {
-    const real = connect() as Record<PropertyKey, unknown>;
-    const value = real[prop as PropertyKey];
+    const real = connect() as unknown as Record<PropertyKey, unknown>;
+    const value = real[prop];
     return typeof value === 'function' ? (value as (...a: unknown[]) => unknown).bind(real) : value;
   },
 });
