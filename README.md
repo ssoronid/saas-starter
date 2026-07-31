@@ -19,11 +19,17 @@ This clones the repo into your own Vercel account and provisions a [Neon](https:
 | `STRIPE_WEBHOOK_SECRET` | no | Needed only once you wire up the Stripe webhook. |
 | `RESEND_API_KEY` | no | Team invitation emails are skipped when absent. |
 
-After the first deploy, run the database migrations against your new Neon database:
+Migrations run automatically on every Vercel build (`vercel-build`), so the schema is created on the first deploy. Locally, run them yourself:
 
 ```bash
 pnpm db:migrate
 ```
+
+### Without payments
+
+The [`no-payments`](https://github.com/ssoronid/saas-starter/tree/no-payments) branch drops Stripe entirely and keeps the JWT-authenticated dashboard — useful for non-commercial projects. Deploy it directly:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fssoronid%2Fsaas-starter%2Ftree%2Fno-payments&env=AUTH_SECRET&envDescription=A%20random%2032%2B%20character%20secret%20used%20to%20sign%20session%20cookies.&envLink=https%3A%2F%2Fgithub.com%2Fssoronid%2Fsaas-starter%23environment-variables&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22neon%22%2C%22productSlug%22%3A%22neon%22%2C%22protocol%22%3A%22storage%22%7D%5D)
 
 ## Features
 
