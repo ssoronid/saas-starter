@@ -1,12 +1,24 @@
+import { notFound } from 'next/navigation';
 import { checkoutAction } from '@/lib/payments/actions';
 import { Check } from 'lucide-react';
-import { getStripePrices, getStripeProducts } from '@/lib/payments/stripe';
+import {
+  getStripePrices,
+  getStripeProducts,
+  paymentsConfigured,
+} from '@/lib/payments';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { SubmitButton } from './submit-button';
 
 // Prices are fresh for one hour max
 export const revalidate = 3600;
 
 export default async function PricingPage() {
+  // No payments provider configured — keep this route unreachable instead of
+  // showing a page that can't check anyone out. See lib/payments/index.ts.
+  if (!paymentsConfigured) {
+    notFound();
+  }
+
   const [prices, products] = await Promise.all([
     getStripePrices(),
     getStripeProducts(),
@@ -66,29 +78,33 @@ function PricingCard({
   priceId?: string;
 }) {
   return (
-    <div className="pt-6">
-      <h2 className="text-2xl font-medium text-gray-900 mb-2">{name}</h2>
-      <p className="text-sm text-gray-600 mb-4">
-        with {trialDays} day free trial
-      </p>
-      <p className="text-4xl font-medium text-gray-900 mb-6">
-        ${price / 100}{' '}
-        <span className="text-xl font-normal text-gray-600">
-          per user / {interval}
-        </span>
-      </p>
-      <ul className="space-y-4 mb-8">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-start">
-            <Check className="h-5 w-5 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-700">{feature}</span>
-          </li>
-        ))}
-      </ul>
-      <form action={checkoutAction}>
-        <input type="hidden" name="priceId" value={priceId} />
-        <SubmitButton />
-      </form>
-    </div>
+    <Card>
+      <CardHeader>
+        <h2 className="text-2xl font-medium text-foreground mb-2">{name}</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          with {trialDays} day free trial
+        </p>
+        <p className="text-4xl font-medium text-foreground">
+          ${price / 100}{' '}
+          <span className="text-xl font-normal text-muted-foreground">
+            per user / {interval}
+          </span>
+        </p>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-4 mb-8">
+          {features.map((feature, index) => (
+            <li key={index} className="flex items-start">
+              <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+              <span className="text-foreground">{feature}</span>
+            </li>
+          ))}
+        </ul>
+        <form action={checkoutAction}>
+          <input type="hidden" name="priceId" value={priceId} />
+          <SubmitButton />
+        </form>
+      </CardContent>
+    </Card>
   );
 }

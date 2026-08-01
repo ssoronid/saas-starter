@@ -1,15 +1,16 @@
 # saas-starter
 
-Next.js 15 + React 19 + Drizzle + Tailwind v4 SaaS boilerplate. Part of the repofast monorepo.
+Next.js + React + Drizzle + Tailwind SaaS boilerplate. Part of the repofast monorepo. Check `package.json` for exact versions — this repo's dependencies are bumped to latest-stable independently of this file, so don't cite a version from prose here.
 
 ## Stack
 
-- **Framework**: Next.js 15 App Router, Turbopack, React 19
-- **DB**: Drizzle ORM + `postgres` driver (works with Neon, Supabase DB, Railway, any Postgres URL)
-- **Auth**: Custom JWT (jose + bcryptjs) — swappable via auth-* extensions
-- **Payments**: Stripe — swappable via payments-* extensions
+- **Framework**: Next.js App Router, Turbopack, React
+- **DB**: Drizzle ORM + `postgres` driver (works with Neon, Supabase DB, Railway, any Postgres URL) — this is the one constant; it doesn't swap per bake the way auth/payments/storage do.
+- **Auth**: Custom JWT (jose + bcryptjs) by default — swappable via auth-* extensions (`auth-supabase`, `auth-clerk`; `auth-nextauth` is offered by the configurator UI but has no extension folder yet — don't assume it works). **This checkout's default is JWT — verify `lib/auth`'s actual implementation before telling a user "this uses Supabase/Clerk," since that's a per-bake choice, not a property of the template.**
+- **Payments**: Stripe by default — swappable via payments-* extensions (`payments-mercadopago`, `payments-none`).
+- **Storage**: none by default — swappable via storage-* extensions (`storage-supabase`, `storage-s3`).
 - **Email**: Resend + react-email
-- **UI**: shadcn/ui (new-york, zinc) + Tailwind v4
+- **UI**: shadcn/ui (new-york, zinc) + Tailwind CSS
 - **Analytics**: PostHog (optional, no-op without key)
 
 ## Lib contracts — NEVER bypass these
@@ -42,12 +43,14 @@ import { createCheckoutSession } from '@/lib/payments/stripe'
 - Stripe-specific data lives in `stripe_data` table (1:1 with teams). MercadoPago uses `mp_data` when injected.
 - Users use soft-delete (`deletedAt`). Never hard-delete a user row.
 
-## Auth flow (default JWT)
+## Auth flow (default JWT — only true when auth=jwt)
 
 1. Sign up/in → `app/(login)/actions.ts` server actions
 2. bcryptjs hashes password, jose creates JWT stored in httpOnly `session` cookie
 3. Global `middleware.ts` protects `/dashboard` routes and auto-refreshes token on every GET
 4. `getUser()` in `lib/db/queries.ts` reads session and fetches user from DB
+
+If an auth-* extension has been injected, this flow is replaced (a Supabase-baked checkout has no `hashPassword`/`signToken` — those throw "not used with this provider" stubs; see the extension's `session.ts`). Read `lib/auth/session.ts` in the actual checkout before assuming this JWT flow applies.
 
 ## Route structure
 
@@ -76,6 +79,10 @@ npx shadcn@latest add <component>
 ```
 
 Components live in `components/ui/`. Style: new-york, base color: zinc.
+
+## How this template gets published
+
+This directory is the **source of truth**. The public deploy-button repo (`ssoronid/saas-starter` — main + 144 `v-*` variant branches) is generated from it by `scripts/publish-variants.ts` at the repofast root (`pnpm publish:dry` to preview, `pnpm publish:all` to ship). Never edit the public repo directly — including its README, which is published from this folder's README.md. The configurator's ZIP path bakes from this same directory, so template edits reach both distribution channels once published.
 
 ## Injecting extensions (run from repofast root)
 

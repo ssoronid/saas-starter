@@ -6,4 +6,5 @@ export {
   handleSubscriptionChange,
   getStripePrices,
   getStripeProducts,
+  stripeConfigured as paymentsConfigured,
 } from './stripe';
