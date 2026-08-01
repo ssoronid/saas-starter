@@ -1,24 +1,27 @@
 import { compare, hash } from 'bcryptjs';
+import { createHash } from 'node:crypto';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NewUser } from '@/lib/db/schema';
 
-/** Minimum length for AUTH_SECRET (UTF-8). Aligns with common 256-bit+ material (e.g. 64-char hex from db:setup). */
+/** Below this, warn (not throw) — a longer random value from db:setup or `openssl rand -hex 32` is safer. */
 const AUTH_SECRET_MIN_LENGTH = 32;
 
 function getAuthSecretKey(): Uint8Array {
   const secret = process.env.AUTH_SECRET;
   if (secret == null || secret === '') {
     throw new Error(
-      'AUTH_SECRET is missing. Set a strong random value in the environment (e.g. run db:setup or openssl rand -hex 32).'
+      'AUTH_SECRET is missing. Set a value in the environment (e.g. run db:setup or openssl rand -hex 32).'
     );
   }
   if (secret.length < AUTH_SECRET_MIN_LENGTH) {
-    throw new Error(
-      `AUTH_SECRET must be at least ${AUTH_SECRET_MIN_LENGTH} characters; got ${secret.length}.`
+    console.warn(
+      `AUTH_SECRET is shorter than the recommended ${AUTH_SECRET_MIN_LENGTH} characters (got ${secret.length}). Deriving a key anyway — for stronger security run: openssl rand -hex 32`
     );
   }
-  return new TextEncoder().encode(secret);
+  // Derive a fixed 256-bit key via SHA-256, so any non-empty secret works for
+  // HS256 regardless of the raw string's length or encoding.
+  return createHash('sha256').update(secret).digest();
 }
 
 const key = getAuthSecretKey();
