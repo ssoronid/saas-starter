@@ -3,14 +3,16 @@
  *
  * Vercel Marketplace database integrations (Neon et al.) let the person
  * deploying pick a custom env-var prefix (STORAGE, NEON, anything), so the
- * URL can arrive as DATABASE_URL, STORAGE_URL, NEON_POSTGRES_URL, … A fixed
- * name list breaks the moment someone types their own prefix — scan instead.
+ * URL can arrive as DATABASE_URL, STORAGE_URL, NEON_POSTGRES_URL, … STORAGE
+ * is the field's own default placeholder, so STORAGE_URL is what most
+ * out-of-the-box deploys actually produce — it's checked right after the
+ * unprefixed names. Anything else still falls through to the generic scan.
  *
  * scripts/migrate.mjs carries a plain-JS copy of this logic (it runs before
  * any TS toolchain is available); keep the two in sync.
  */
 
-const EXACT_NAMES = ['DATABASE_URL', 'POSTGRES_URL'];
+const EXACT_NAMES = ['DATABASE_URL', 'STORAGE_URL', 'POSTGRES_URL'];
 const SUFFIXES = ['_DATABASE_URL', '_POSTGRES_URL', '_URL'];
 
 function isPostgresUrl(value: string | undefined): value is string {

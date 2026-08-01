@@ -12,7 +12,7 @@ import { execSync } from 'child_process';
 // toolchain exists in the build). Keep the two in sync: Marketplace database
 // integrations let the deployer pick ANY env-var prefix, so scan rather than
 // hardcode names.
-const EXACT_NAMES = ['DATABASE_URL', 'POSTGRES_URL'];
+const EXACT_NAMES = ['DATABASE_URL', 'STORAGE_URL', 'POSTGRES_URL'];
 const SUFFIXES = ['_DATABASE_URL', '_POSTGRES_URL', '_URL'];
 const isPg = (v) => !!v && /^postgres(ql)?:\/\//.test(v);
 
