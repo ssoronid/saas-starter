@@ -8,18 +8,42 @@
  */
 import { execSync } from 'child_process';
 
-const url =
-  process.env.DATABASE_URL ??
-  process.env.POSTGRES_URL ??
-  process.env.STORAGE_DATABASE_URL ??
-  process.env.STORAGE_POSTGRES_URL;
+// Plain-JS copy of lib/db/resolve-db-url.ts (this runs before any TS
+// toolchain exists in the build). Keep the two in sync: Marketplace database
+// integrations let the deployer pick ANY env-var prefix, so scan rather than
+// hardcode names.
+const EXACT_NAMES = ['DATABASE_URL', 'POSTGRES_URL'];
+const SUFFIXES = ['_DATABASE_URL', '_POSTGRES_URL', '_URL'];
+const isPg = (v) => !!v && /^postgres(ql)?:\/\//.test(v);
+
+function resolveDatabaseUrl(env = process.env) {
+  for (const name of EXACT_NAMES) {
+    if (env[name]) return env[name];
+  }
+  const keys = Object.keys(env).sort();
+  for (const nonPooling of [false, true]) {
+    for (const suffix of SUFFIXES) {
+      for (const key of keys) {
+        if (!key.endsWith(suffix)) continue;
+        if (/NON_POOLING|UNPOOLED/.test(key) !== nonPooling) continue;
+        if (isPg(env[key])) return env[key];
+      }
+    }
+  }
+  for (const key of keys) {
+    if (isPg(env[key])) return env[key];
+  }
+  return undefined;
+}
+
+const url = resolveDatabaseUrl();
 
 if (!url) {
   console.log('[migrate] No database URL set — skipping migrations.');
   process.exit(0);
 }
 
-// drizzle.config.ts reads the same chain; normalize so drizzle-kit sees it.
+// drizzle.config.ts resolves the same way; normalize so drizzle-kit sees it.
 process.env.DATABASE_URL = url;
 
 try {

@@ -12,10 +12,13 @@ export async function sendTeamInvitationEmail(params: {
   role: string;
   inviteId: number;
 }): Promise<SendInvitationResult> {
-  // The Vercel Resend integration injects RESEND_API_KEY; a store-flow attach
-  // may prefix it. Email stays optional — absent key means invitations are
-  // saved but not sent.
-  const apiKey = process.env.RESEND_API_KEY ?? process.env.STORAGE_RESEND_API_KEY;
+  // The Vercel Resend integration injects RESEND_API_KEY — under a
+  // deployer-chosen prefix when attached through the Marketplace flow, so
+  // scan for any *_RESEND_API_KEY. Email stays optional — absent key means
+  // invitations are saved but not sent.
+  const apiKey =
+    process.env.RESEND_API_KEY ??
+    Object.entries(process.env).find(([k, v]) => k.endsWith('_RESEND_API_KEY') && v)?.[1];
   if (!apiKey) {
     return { ok: false, reason: 'missing_api_key' };
   }

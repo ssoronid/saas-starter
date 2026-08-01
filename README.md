@@ -13,11 +13,11 @@ This clones the repo into your own Vercel account and provisions a [Neon](https:
 | Variable | Required | Notes |
 | --- | --- | --- |
 | `AUTH_SECRET` | yes | Signs session cookies. Must be 32+ characters — generate with `openssl rand -hex 32`. |
-| `DATABASE_URL` | yes | Injected automatically by the Neon integration. Falls back to `POSTGRES_URL` if set. |
+| `DATABASE_URL` | yes | Injected automatically by the Neon integration. Any custom Marketplace prefix works too — the app scans for `*_DATABASE_URL` / `*_POSTGRES_URL` / `*_URL` values that are Postgres connection strings, so a prefix like `STORAGE` or `NEON` needs no extra config. `POSTGRES_URL` also accepted. |
 | `BASE_URL` | no | Defaults to the deployment URL. Set to `http://localhost:3000` locally. |
 | `STRIPE_SECRET_KEY` | no | Payments stay dormant until this is set. |
 | `STRIPE_WEBHOOK_SECRET` | no | Needed only once you wire up the Stripe webhook. |
-| `RESEND_API_KEY` | no | Team invitation emails are skipped when absent. |
+| `RESEND_API_KEY` | no | Team invitation emails are skipped when absent. Custom Marketplace prefixes (`*_RESEND_API_KEY`) are detected automatically. |
 
 Migrations run automatically on every Vercel build (`vercel-build`), so the schema is created on the first deploy. Locally, run them yourself:
 

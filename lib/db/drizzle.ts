@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
+import { resolveDatabaseUrl } from './resolve-db-url';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,16 +13,11 @@ let instance: Db | null = null;
 function connect(): Db {
   if (instance) return instance;
 
-  // Vercel's Neon integration injects DATABASE_URL — prefixed with STORAGE_
-  // when attached through the Deploy Button's stores flow. POSTGRES_URL is
-  // kept as a fallback for local setups.
-  const url =
-    process.env.DATABASE_URL ??
-    process.env.POSTGRES_URL ??
-    process.env.STORAGE_DATABASE_URL ??
-    process.env.STORAGE_POSTGRES_URL;
+  const url = resolveDatabaseUrl();
   if (!url) {
-    throw new Error('DATABASE_URL (or POSTGRES_URL / STORAGE_DATABASE_URL) environment variable is not set');
+    throw new Error(
+      'No Postgres connection string found. Set DATABASE_URL — Marketplace-prefixed names (STORAGE_URL, NEON_DATABASE_URL, …) are detected automatically.'
+    );
   }
 
   instance = drizzle(postgres(url), { schema });
