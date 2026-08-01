@@ -12,11 +12,16 @@ let instance: Db | null = null;
 function connect(): Db {
   if (instance) return instance;
 
-  // Vercel's Neon integration injects DATABASE_URL. POSTGRES_URL is kept as a
-  // fallback for local setups and for databases provisioned the old way.
-  const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
+  // Vercel's Neon integration injects DATABASE_URL — prefixed with STORAGE_
+  // when attached through the Deploy Button's stores flow. POSTGRES_URL is
+  // kept as a fallback for local setups.
+  const url =
+    process.env.DATABASE_URL ??
+    process.env.POSTGRES_URL ??
+    process.env.STORAGE_DATABASE_URL ??
+    process.env.STORAGE_POSTGRES_URL;
   if (!url) {
-    throw new Error('DATABASE_URL (or POSTGRES_URL) environment variable is not set');
+    throw new Error('DATABASE_URL (or POSTGRES_URL / STORAGE_DATABASE_URL) environment variable is not set');
   }
 
   instance = drizzle(postgres(url), { schema });

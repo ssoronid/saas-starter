@@ -8,12 +8,19 @@
  */
 import { execSync } from 'child_process';
 
-const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
+const url =
+  process.env.DATABASE_URL ??
+  process.env.POSTGRES_URL ??
+  process.env.STORAGE_DATABASE_URL ??
+  process.env.STORAGE_POSTGRES_URL;
 
 if (!url) {
-  console.log('[migrate] No DATABASE_URL/POSTGRES_URL set — skipping migrations.');
+  console.log('[migrate] No database URL set — skipping migrations.');
   process.exit(0);
 }
+
+// drizzle.config.ts reads the same chain; normalize so drizzle-kit sees it.
+process.env.DATABASE_URL = url;
 
 try {
   console.log('[migrate] Applying migrations...');
