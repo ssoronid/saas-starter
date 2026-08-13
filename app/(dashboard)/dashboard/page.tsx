@@ -18,6 +18,7 @@ import { Suspense } from 'react';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, PlusCircle } from 'lucide-react';
 
 type ActionState = {
@@ -79,12 +80,12 @@ function TeamMembersSkeleton() {
         <CardTitle>Team Members</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="animate-pulse space-y-4 mt-1">
+        <div className="space-y-4 mt-1">
           <div className="flex items-center space-x-4">
-            <div className="size-8 rounded-full bg-gray-200"></div>
+            <Skeleton className="size-8 rounded-full" />
             <div className="space-y-2">
-              <div className="h-4 w-32 bg-gray-200 rounded"></div>
-              <div className="h-3 w-14 bg-gray-200 rounded"></div>
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-14" />
             </div>
           </div>
         </div>
@@ -170,7 +171,7 @@ function TeamMembers() {
           ))}
         </ul>
         {removeState?.error && (
-          <p className="text-red-500 mt-4">{removeState.error}</p>
+          <p className="text-destructive mt-4">{removeState.error}</p>
         )}
       </CardContent>
     </Card>
@@ -234,16 +235,12 @@ function InviteTeamMember() {
             </RadioGroup>
           </div>
           {inviteState?.error && (
-            <p className="text-red-500">{inviteState.error}</p>
+            <p className="text-destructive">{inviteState.error}</p>
           )}
           {inviteState?.success && (
-            <p className="text-green-500">{inviteState.success}</p>
+            <p className="text-success">{inviteState.success}</p>
           )}
-          <Button
-            type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-white"
-            disabled={isInvitePending || !isOwner}
-          >
+          <Button type="submit" disabled={isInvitePending || !isOwner}>
             {isInvitePending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

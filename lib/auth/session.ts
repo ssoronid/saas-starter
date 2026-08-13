@@ -24,7 +24,15 @@ function getAuthSecretKey(): Uint8Array {
   return createHash('sha256').update(secret).digest();
 }
 
-const key = getAuthSecretKey();
+/** Resolved on first use, not at import — like Stripe, auth stays dormant until
+ * configured, so env-less builds (page-data collection imports this module) succeed. */
+let cachedKey: Uint8Array | null = null;
+
+function key(): Uint8Array {
+  cachedKey ??= getAuthSecretKey();
+  return cachedKey;
+}
+
 const SALT_ROUNDS = 10;
 
 export async function hashPassword(password: string) {
@@ -48,11 +56,11 @@ export async function signToken(payload: SessionData) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('1 day from now')
-    .sign(key);
+    .sign(key());
 }
 
 export async function verifyToken(input: string) {
-  const { payload } = await jwtVerify(input, key, {
+  const { payload } = await jwtVerify(input, key(), {
     algorithms: ['HS256'],
   });
   return payload as SessionData;
